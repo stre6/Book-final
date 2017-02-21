@@ -1,5 +1,6 @@
 package com.kaka.book;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +11,13 @@ import android.widget.DatePicker;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 
 /**
  * Created by stre6 on 2016-12-28.
@@ -344,6 +352,7 @@ public class Yayak extends AppCompatActivity {
 
                     }
                 });
+
         end.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -355,13 +364,13 @@ public class Yayak extends AppCompatActivity {
                 t3.setText(day);
                 t4.setText(String.valueOf(tp.getCurrentHour()));
                 t5.setText(String.valueOf(tp.getCurrentMinute()));
-                String res="";
+                String res = "";
                 ida = t.getText().toString();
                 pa = d.getText().toString();
                 LC lc = new LC();
                 lc.ch(ida, pa, na, gr);
                 res = lc.getres();
-                for (int i=0; i< lc.ln.size(); i++){
+                for (int i = 0; i < lc.ln.size(); i++) {
                     na = lc.ln.get(i).toString();
                     gr = lc.lg.get(i).toString();
                     if (lc.id.equals(lc.ld.get(i).toString().trim()) && lc.pw.equals(lc.lp.get(i).toString().trim())) {
@@ -375,7 +384,73 @@ public class Yayak extends AppCompatActivity {
                 Log.e("grgrgr", gr);
                 e.setText(na);
                 grade.setText(gr);
+                String n = e.getText().toString();
+                int o = Integer.parseInt(grade.getText().toString());
+                String p = sil.getText().toString();
+                String a = ja.getText().toString();
+                String s = sigan.getText().toString();
+                int y = Integer.parseInt(t1.getText().toString());
+                int m = Integer.parseInt(t2.getText().toString());
+                int d = Integer.parseInt(t3.getText().toString());
+                int i = Integer.parseInt(t4.getText().toString());
+                int t = Integer.parseInt(t5.getText().toString());
+                insertToDatabase(n, o, p, a, s, y, m, d, i, t);
             }
         });
+    }
+
+    private void insertToDatabase(String n, int o, String p, String a, String s, int y, int m, int d, int i, int t) {
+        class InsertData extends AsyncTask<String, Void, String> {
+
+            @Override
+            protected String doInBackground(String... params) {
+                try {
+                    String n = (String) params[0];
+                    String o = (String) params[1];
+                    String p = (String) params[2];
+                    String a = (String) params[3];
+                    String s = (String) params[4];
+                    String y = (String) params[5];
+                    String m = (String) params[6];
+                    String d = (String) params[7];
+                    String i = (String) params[8];
+                    String t = (String) params[9];
+                    String link = "http://10.142.47.250:8000/fjscl13/bookyeyak.php";
+                    String data = URLEncoder.encode("name", "UTF-8") + "=" + URLEncoder.encode(n, "UTF-8");
+                    data += "&" + URLEncoder.encode("gra", "UTF-8") + "=" + URLEncoder.encode(o, "UTF-8");
+                    data += "&" + URLEncoder.encode("sil", "UTF-8") + "=" + URLEncoder.encode(p, "UTF-8");
+                    data += "&" + URLEncoder.encode("ja", "UTF-8") + "=" + URLEncoder.encode(a, "UTF-8");
+                    data += "&" + URLEncoder.encode("sigan", "UTF-8") + "=" + URLEncoder.encode(s, "UTF-8");
+                    data += "&" + URLEncoder.encode("ye", "UTF-8") + "=" + URLEncoder.encode(y, "UTF-8");
+                    data += "&" + URLEncoder.encode("mo", "UTF-8") + "=" + URLEncoder.encode(m, "UTF-8");
+                    data += "&" + URLEncoder.encode("da", "UTF-8") + "=" + URLEncoder.encode(d, "UTF-8");
+                    data += "&" + URLEncoder.encode("ti", "UTF-8") + "=" + URLEncoder.encode(i, "UTF-8");
+                    data += "&" + URLEncoder.encode("mi", "UTF-8") + "=" + URLEncoder.encode(t, "UTF-8");
+                    URL url = new URL(link);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDefaultUseCaches(false);
+                    connection.setDoInput(true);
+                    connection.setDoOutput(true);
+                    connection.setConnectTimeout(6000);
+                    connection.setRequestMethod("POST");
+                    OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
+                    wr.write(data);
+                    wr.flush();
+                    wr.close();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+                    StringBuffer sb = new StringBuffer();
+                    String line = null;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
+                        break;
+                    }
+                    return sb.toString();
+                } catch (Exception e) {
+                    return new String("Exception: " + e.getMessage());
+                }
+            }
+        }
+        InsertData task = new InsertData();
+        task.execute(n, String.valueOf(o), p, a, s, String.valueOf(y), String.valueOf(m), String.valueOf(d), String.valueOf(i), String.valueOf(t));
     }
 }
